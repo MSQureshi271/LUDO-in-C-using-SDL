@@ -9,6 +9,7 @@
 
 //Function to draw dice based on the dice number rolled
 void drawDice(SDL_Renderer *renderer, int diceNumber, int x, int y) {
+
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);  // Black for the dice border
     SDL_Rect diceRect = {x, y, DICE_SIZE, DICE_SIZE};
     SDL_RenderFillRect(renderer, &diceRect);

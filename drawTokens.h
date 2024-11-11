@@ -21,7 +21,7 @@ void drawCircle(SDL_Renderer *renderer, int centerX, int centerY, int radius, SD
     }
 }
 
-void drawTokens(SDL_Renderer *renderer) {
+void drawTokens(SDL_Renderer *renderer, int numPlayers) {
     SDL_Color redToken = {150, 0, 0, 255};
     SDL_Color greenToken = {0, 150, 0, 255};
     SDL_Color blueToken = {0, 0, 150, 255};
@@ -31,47 +31,53 @@ void drawTokens(SDL_Renderer *renderer) {
     int outlineRadius = tokenRadius + 2;      // Increase outline slightly to match new token size
     int separation = 15;
 
-    // Player 1 (Red) tokens
-    int redX = 1 * CELL_SIZE + separation;
-    int redY = 1 * CELL_SIZE + separation;
-    for (int i = 0; i < 4; ++i) {
-        int centerX = redX + (i % 2) * (CELL_SIZE / 2 + separation) + tokenRadius;
-        int centerY = redY + (i / 2) * (CELL_SIZE / 2 + separation) + tokenRadius;
+    // Tokens for each player (based on the selected number of players)
+    if (numPlayers >= 2) {
+        // Player 1 (Red) tokens
+        int redX = 1 * CELL_SIZE + separation;
+        int redY = 1 * CELL_SIZE + separation;
+        for (int i = 0; i < 4; ++i) {
+            int centerX = redX + (i % 2) * (CELL_SIZE / 2 + separation) + tokenRadius;
+            int centerY = redY + (i / 2) * (CELL_SIZE / 2 + separation) + tokenRadius;
 
-        drawCircle(renderer, centerX, centerY, outlineRadius, (SDL_Color){0, 0, 0, 255});
-        drawCircle(renderer, centerX, centerY, tokenRadius, redToken);
+            drawCircle(renderer, centerX, centerY, outlineRadius, (SDL_Color){0, 0, 0, 255});
+            drawCircle(renderer, centerX, centerY, tokenRadius, redToken);
+        }
+        // Player 2 (Yellow) tokens
+        int yellowX = 9 * CELL_SIZE + separation;
+        int yellowY = 9 * CELL_SIZE + separation;
+        for (int i = 0; i < 4; ++i) {
+            int centerX = yellowX + (i % 2) * (CELL_SIZE / 2 + separation) + tokenRadius;
+            int centerY = yellowY + (i / 2) * (CELL_SIZE / 2 + separation) + tokenRadius;
+
+            drawCircle(renderer, centerX, centerY, outlineRadius, (SDL_Color){0, 0, 0, 255});
+            drawCircle(renderer, centerX, centerY, tokenRadius, yellowToken);
+        }
+    }
+    if (numPlayers >= 3) {
+        // Player 3 (Blue) tokens
+        int blueX = 1 * CELL_SIZE + separation;
+        int blueY = 9 * CELL_SIZE + separation;
+        for (int i = 0; i < 4; ++i) {
+            int centerX = blueX + (i % 2) * (CELL_SIZE / 2 + separation) + tokenRadius;
+            int centerY = blueY + (i / 2) * (CELL_SIZE / 2 + separation) + tokenRadius;
+
+            drawCircle(renderer, centerX, centerY, outlineRadius, (SDL_Color){0, 0, 0, 255});
+            drawCircle(renderer, centerX, centerY, tokenRadius, blueToken);
+        }
+    }
+    if (numPlayers == 4) {
+        // Player 4 (Green) tokens
+        int greenX = 9 * CELL_SIZE + separation;
+        int greenY = 1 * CELL_SIZE + separation;
+        for (int i = 0; i < 4; ++i) {
+            int centerX = greenX + (i % 2) * (CELL_SIZE / 2 + separation) + tokenRadius;
+            int centerY = greenY + (i / 2) * (CELL_SIZE / 2 + separation) + tokenRadius;
+
+            drawCircle(renderer, centerX, centerY, outlineRadius, (SDL_Color){0, 0, 0, 255});
+            drawCircle(renderer, centerX, centerY, tokenRadius, greenToken);
+        }
     }
 
-    // Player 2 (Green) tokens
-    int greenX = 9 * CELL_SIZE + separation;
-    int greenY = 1 * CELL_SIZE + separation;
-    for (int i = 0; i < 4; ++i) {
-        int centerX = greenX + (i % 2) * (CELL_SIZE / 2 + separation) + tokenRadius;
-        int centerY = greenY + (i / 2) * (CELL_SIZE / 2 + separation) + tokenRadius;
-
-        drawCircle(renderer, centerX, centerY, outlineRadius, (SDL_Color){0, 0, 0, 255});
-        drawCircle(renderer, centerX, centerY, tokenRadius, greenToken);
-    }
-
-    // Player 3 (Blue) tokens
-    int blueX = 1 * CELL_SIZE + separation;
-    int blueY = 9 * CELL_SIZE + separation;
-    for (int i = 0; i < 4; ++i) {
-        int centerX = blueX + (i % 2) * (CELL_SIZE / 2 + separation) + tokenRadius;
-        int centerY = blueY + (i / 2) * (CELL_SIZE / 2 + separation) + tokenRadius;
-
-        drawCircle(renderer, centerX, centerY, outlineRadius, (SDL_Color){0, 0, 0, 255});
-        drawCircle(renderer, centerX, centerY, tokenRadius, blueToken);
-    }
-
-    // Player 4 (Yellow) tokens
-    int yellowX = 9 * CELL_SIZE + separation;
-    int yellowY = 9 * CELL_SIZE + separation;
-    for (int i = 0; i < 4; ++i) {
-        int centerX = yellowX + (i % 2) * (CELL_SIZE / 2 + separation) + tokenRadius;
-        int centerY = yellowY + (i / 2) * (CELL_SIZE / 2 + separation) + tokenRadius;
-
-        drawCircle(renderer, centerX, centerY, outlineRadius, (SDL_Color){0, 0, 0, 255});
-        drawCircle(renderer, centerX, centerY, tokenRadius, yellowToken);
-    }
+    SDL_RenderPresent(renderer);
 }
