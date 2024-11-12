@@ -4,8 +4,8 @@
 #include <time.h>
 #include "drawBoard.h"
 #include "drawTokens.h"
-#include "drawDice.h"
 #include "displayStartMenu.h"
+#include "rollDice.h"
 
 #define SCREEN_WIDTH 800
 #define SCREEN_HEIGHT 800
@@ -13,11 +13,6 @@
 #define CELL_SIZE (SCREEN_WIDTH / BOARD_SIZE)
 #define DICE_SIZE 100  // Size of the dice square
 #define DOT_SIZE 15    // Size of each dot on the dice
-
-// Function to roll the dice
-int rollDice() {
-    return (rand() % 6) + 1;
-}
 
 int main(int argc, char *argv[]) {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -36,8 +31,7 @@ int main(int argc, char *argv[]) {
     }
 
     TTF_Init(); //Initialize SDL_TTF
-    // Load font
-    TTF_Font *font = TTF_OpenFont("arial.ttf", 24);  // Change the font size as needed
+    TTF_Font *font = TTF_OpenFont("arial.ttf", 24);  // Load the font
     if (!font) {
         printf("Unable to load font: %s\n", TTF_GetError());
         return -1;
@@ -51,33 +45,39 @@ int main(int argc, char *argv[]) {
     SDL_Event event;
     int diceResult;
 
+    // Coordinates to draw the dice in the center area
+    int diceX = 7 * CELL_SIZE + (CELL_SIZE / 2) - (DICE_SIZE / 2);
+    int diceY = 7 * CELL_SIZE + (CELL_SIZE / 2) - (DICE_SIZE / 2);
+
     while (running) {
-        while (SDL_PollEvent(&event)) {
+        while (SDL_PollEvent(&event) != 0) {
             if (event.type == SDL_QUIT) {
                 running = 0;
-            } else if (event.type == SDL_KEYDOWN) {
-                diceResult = rollDice();  // Roll dice on key press
+            } else if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_RETURN) {
+                // Roll dice with shuffling effect when Enter is pressed
+                diceResult = rollDice(renderer, diceX, diceY);
             }
         }
 
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        // Clear screen and redraw game elements
+        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
         SDL_RenderClear(renderer);
 
         drawLudoBoard(renderer);
-        // Run game with the selected number of players
+
         if (numPlayers >= 2 && numPlayers <= 4) {
             drawTokens(renderer, numPlayers);
         }
-        
-        // Draw dice in the center area
-        int diceX = 7 * CELL_SIZE + (CELL_SIZE / 2) - (DICE_SIZE / 2);
-        int diceY = 7 * CELL_SIZE + (CELL_SIZE / 2) - (DICE_SIZE / 2);
+
+        // Draw final dice result in the center
         drawDice(renderer, diceResult, diceX, diceY);
 
         SDL_RenderPresent(renderer);
         SDL_Delay(16);
     }
 
+    TTF_CloseFont(font);
+    TTF_Quit();
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();

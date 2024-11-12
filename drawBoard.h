@@ -23,7 +23,7 @@ void drawLudoBoard(SDL_Renderer *renderer) {
             SDL_Rect cell = {col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE};
 
             // Draw white border around every cell
-            SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
             SDL_RenderDrawRect(renderer, &cell);
 
             // Home row coloring (pathway) with white borders for individual cells
@@ -33,15 +33,15 @@ void drawLudoBoard(SDL_Renderer *renderer) {
                         if(col == 1){
                             SDL_SetRenderDrawColor(renderer, redHome.r, redHome.g, redHome.b, redHome.a);
                             SDL_RenderFillRect(renderer, &cell);
-                            // Draw white border around the cell
-                            SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+                            // Draw black border around the cell
+                            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);  // Changed to black
                             SDL_RenderDrawRect(renderer, &cell); 
                         }
                         else if(col == 12){
                             SDL_SetRenderDrawColor(renderer, yellowHome.r, yellowHome.g, yellowHome.b, yellowHome.a);
                             SDL_RenderFillRect(renderer, &cell);
-                            // Draw white border around the cell
-                            SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+                            // Draw black border around the cell
+                            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);  // Changed to black
                             SDL_RenderDrawRect(renderer, &cell);
                         }
                         break;
@@ -50,16 +50,16 @@ void drawLudoBoard(SDL_Renderer *renderer) {
                         if (col > 0 && col < 6) {
                             SDL_SetRenderDrawColor(renderer, redHome.r, redHome.g, redHome.b, redHome.a);
                             SDL_RenderFillRect(renderer, &cell);
-                            // Draw white border around the cell
-                            SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+                            // Draw black border around the cell
+                            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);  // Changed to black
                             SDL_RenderDrawRect(renderer, &cell);
                         }
                         // Home row for Green (Row 7, from 9 to 14 in column range)
                         else if (col >= 9 && col <= 13) {
                             SDL_SetRenderDrawColor(renderer, yellowHome.r, yellowHome.g, yellowHome.b, yellowHome.a);
                             SDL_RenderFillRect(renderer, &cell);
-                            // Draw white border around the cell
-                            SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+                            // Draw black border around the cell
+                            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);  // Changed to black
                             SDL_RenderDrawRect(renderer, &cell);
                         }
                         break;
@@ -67,15 +67,15 @@ void drawLudoBoard(SDL_Renderer *renderer) {
                         if(col == 2){
                             SDL_SetRenderDrawColor(renderer, redHome.r, redHome.g, redHome.b, redHome.a);
                             SDL_RenderFillRect(renderer, &cell);
-                            // Draw white border around the cell
-                            SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+                            // Draw black border around the cell
+                            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);  // Changed to black
                             SDL_RenderDrawRect(renderer, &cell);
                         }
                         else if(col == 13){
                             SDL_SetRenderDrawColor(renderer, yellowHome.r, yellowHome.g, yellowHome.b, yellowHome.a);
                             SDL_RenderFillRect(renderer, &cell);
-                            // Draw white border around the cell
-                            SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+                            // Draw black border around the cell
+                            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);  // Changed to black
                             SDL_RenderDrawRect(renderer, &cell);
                         }
                         break;
@@ -87,15 +87,15 @@ void drawLudoBoard(SDL_Renderer *renderer) {
                         if(row == 2){
                             SDL_SetRenderDrawColor(renderer, greenHome.r, greenHome.g, greenHome.b, greenHome.a);
                             SDL_RenderFillRect(renderer, &cell);
-                            // Draw white border around the cell
-                            SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+                            // Draw black border around the cell
+                            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);  // Changed to black
                             SDL_RenderDrawRect(renderer, &cell);                            
                         }
                         else if(row == 13){
                             SDL_SetRenderDrawColor(renderer, blueHome.r, blueHome.g, blueHome.b, blueHome.a);
                             SDL_RenderFillRect(renderer, &cell);
-                            // Draw white border around the cell
-                            SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+                            // Draw black border around the cell
+                            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);  // Changed to black
                             SDL_RenderDrawRect(renderer, &cell);                            
                         }
                         break;
@@ -104,16 +104,16 @@ void drawLudoBoard(SDL_Renderer *renderer) {
                         if (row > 0 && row < 6) {
                             SDL_SetRenderDrawColor(renderer, greenHome.r, greenHome.g, greenHome.b, greenHome.a);
                             SDL_RenderFillRect(renderer, &cell);
-                            // Draw white border around the cell
-                            SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+                            // Draw black border around the cell
+                            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);  // Changed to black
                             SDL_RenderDrawRect(renderer, &cell); 
                         }
                         // Home row for Yellow (Column 7, from 9 to 14 in row range)
                         else if (row >= 9 && row <= 13) {
                             SDL_SetRenderDrawColor(renderer, blueHome.r, blueHome.g, blueHome.b, blueHome.a);
                             SDL_RenderFillRect(renderer, &cell);
-                            // Draw white border around the cell
-                            SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+                            // Draw black border around the cell
+                            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);  // Changed to black
                             SDL_RenderDrawRect(renderer, &cell);    
                         }
                         break;
@@ -121,15 +121,15 @@ void drawLudoBoard(SDL_Renderer *renderer) {
                         if(row == 1){
                             SDL_SetRenderDrawColor(renderer, greenHome.r, greenHome.g, greenHome.b, greenHome.a);
                             SDL_RenderFillRect(renderer, &cell);
-                            // Draw white border around the cell
-                            SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+                            // Draw black border around the cell
+                            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);  // Changed to black
                             SDL_RenderDrawRect(renderer, &cell); 
                         }
                         else if(row == 12){
                             SDL_SetRenderDrawColor(renderer, blueHome.r, blueHome.g, blueHome.b, blueHome.a);
                             SDL_RenderFillRect(renderer, &cell);
-                            // Draw white border around the cell
-                            SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+                            // Draw black border around the cell
+                            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);  // Changed to black
                             SDL_RenderDrawRect(renderer, &cell); 
                         }
                         break;
@@ -154,11 +154,11 @@ void drawLudoBoard(SDL_Renderer *renderer) {
     }
 
     // Draw the central area
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_Rect centralArea = {6 * CELL_SIZE, 6 * CELL_SIZE, 3 * CELL_SIZE, 3 * CELL_SIZE};
     SDL_RenderFillRect(renderer, &centralArea);
 
-    // Draw white border around the central area
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    // Draw black border around the central area
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderDrawRect(renderer, &centralArea);
 }
