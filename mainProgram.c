@@ -2,10 +2,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include "drawBoard.h"
-#include "drawTokens.h"
-#include "displayStartMenu.h"
-#include "rollDice.h"
+#include "Header Files/drawBoard.h"
+#include "Header Files/drawTokens.h"
+#include "Header Files/displayStartMenu.h"
+#include "Header Files/rollDice.h"
 
 #define SCREEN_WIDTH 800
 #define SCREEN_HEIGHT 800
@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
     }
 
     TTF_Init(); //Initialize SDL_TTF
-    TTF_Font *font = TTF_OpenFont("arial.ttf", 24);  // Load the font
+    TTF_Font *font = TTF_OpenFont("Montserrat-ExtraBoldItalic.ttf", 24);  // Load the font
     if (!font) {
         printf("Unable to load font: %s\n", TTF_GetError());
         return -1;

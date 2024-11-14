@@ -34,8 +34,8 @@ void drawTokens(SDL_Renderer *renderer, int numPlayers) {
     // Tokens for each player (based on the selected number of players)
     if (numPlayers >= 2) {
         // Player 1 (Red) tokens
-        int redX = 1 * CELL_SIZE + separation;
-        int redY = 1 * CELL_SIZE + separation;
+        int redX = 2 * CELL_SIZE + separation;
+        int redY = 2 * CELL_SIZE + separation;
         for (int i = 0; i < 4; ++i) {
             int centerX = redX + (i % 2) * (CELL_SIZE / 2 + separation) + tokenRadius;
             int centerY = redY + (i / 2) * (CELL_SIZE / 2 + separation) + tokenRadius;
@@ -44,8 +44,8 @@ void drawTokens(SDL_Renderer *renderer, int numPlayers) {
             drawCircle(renderer, centerX, centerY, tokenRadius, redToken);
         }
         // Player 2 (Yellow) tokens
-        int yellowX = 9 * CELL_SIZE + separation;
-        int yellowY = 9 * CELL_SIZE + separation;
+        int yellowX = 11 * CELL_SIZE + separation;
+        int yellowY = 11 * CELL_SIZE + separation;
         for (int i = 0; i < 4; ++i) {
             int centerX = yellowX + (i % 2) * (CELL_SIZE / 2 + separation) + tokenRadius;
             int centerY = yellowY + (i / 2) * (CELL_SIZE / 2 + separation) + tokenRadius;
@@ -56,8 +56,8 @@ void drawTokens(SDL_Renderer *renderer, int numPlayers) {
     }
     if (numPlayers >= 3) {
         // Player 3 (Blue) tokens
-        int blueX = 1 * CELL_SIZE + separation;
-        int blueY = 9 * CELL_SIZE + separation;
+        int blueX = 2 * CELL_SIZE + separation;
+        int blueY = 11 * CELL_SIZE + separation;
         for (int i = 0; i < 4; ++i) {
             int centerX = blueX + (i % 2) * (CELL_SIZE / 2 + separation) + tokenRadius;
             int centerY = blueY + (i / 2) * (CELL_SIZE / 2 + separation) + tokenRadius;
@@ -68,8 +68,8 @@ void drawTokens(SDL_Renderer *renderer, int numPlayers) {
     }
     if (numPlayers == 4) {
         // Player 4 (Green) tokens
-        int greenX = 9 * CELL_SIZE + separation;
-        int greenY = 1 * CELL_SIZE + separation;
+        int greenX = 11 * CELL_SIZE + separation;
+        int greenY = 2 * CELL_SIZE + separation;
         for (int i = 0; i < 4; ++i) {
             int centerX = greenX + (i % 2) * (CELL_SIZE / 2 + separation) + tokenRadius;
             int centerY = greenY + (i / 2) * (CELL_SIZE / 2 + separation) + tokenRadius;
