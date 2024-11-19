@@ -409,6 +409,7 @@ int rollDice(SDL_Renderer *renderer, int x, int y) {
 
 // Structure for tokens
 typedef struct {
+    int currentStep; // Tracks the current position on the path
     int x, y;           // Current position
     int isHome;         // 1 if in home zone, 0 otherwise
 } Token;
@@ -445,8 +446,8 @@ void initializeTokens(int numPlayers) {
         int homeY = homeZones[i].y * CELL_SIZE;
 
         for (int j = 0; j < 4; j++) {
-            tokens[i][j].x = homeX + (j % 2) * (CELL_SIZE / 2 + spacing);
-            tokens[i][j].y = homeY + (j / 2) * (CELL_SIZE / 2 + spacing);
+            tokens[i][j].x = homeX + (j % 2) * (CELL_SIZE / 2);
+            tokens[i][j].y = homeY + (j / 2) * (CELL_SIZE / 2);
             tokens[i][j].isHome = 1;
         }
     }
@@ -476,36 +477,50 @@ int handleTokenSelection(SDL_Event *event, int currentPlayer) {
 
 // Function to move the token
 void moveToken(Token *token, int diceRoll, int currentPlayer) {
-    // If the token is in the home zone and a 6 is rolled, free it
+    static const SDL_Point path[52] = {
+        {7, 0}, {6, 0}, {5, 0}, {4, 0}, {3, 0}, {2, 0}, {1, 0},
+        {0, 0}, {0, 1}, {0, 2}, {0, 3}, {0, 4}, {0, 5}, {0, 6},
+        {1, 6}, {2, 6}, {3, 6}, {4, 6}, {5, 6}, {6, 6}, {6, 7},
+        {6, 8}, {6, 9}, {6, 10}, {6, 11}, {6, 12}, {7, 12}, {8, 12},
+        {9, 12}, {10, 12}, {11, 12}, {12, 12}, {12, 11}, {12, 10},
+        {12, 9}, {12, 8}, {12, 7}, {12, 6}, {11, 6}, {10, 6}, {9, 6},
+        {8, 6}, {7, 6}, {7, 5}, {7, 4}, {7, 3}, {7, 2}, {7, 1}
+    };
+
+    static const SDL_Point homeStretch[4][6] = {
+        {{1, 6}, {2, 6}, {3, 6}, {4, 6}, {5, 6}, {6, 6}},
+        {{6, 11}, {6, 10}, {6, 9}, {6, 8}, {6, 7}, {6, 6}},
+        {{11, 6}, {10, 6}, {9, 6}, {8, 6}, {7, 6}, {6, 6}},
+        {{6, 1}, {6, 2}, {6, 3}, {6, 4}, {6, 5}, {6, 6}}
+    };
+
     if (token->isHome && diceRoll == 6) {
-        token->isHome = 0; // Mark as no longer in home
-        token->x = startingPositions[currentPlayer].x * CELL_SIZE;
-        token->y = startingPositions[currentPlayer].y * CELL_SIZE;
-    } else if (!token->isHome) {
-        // Move the token along the path
-        int steps = diceRoll;
+        token->isHome = 0;
+        token->currentStep = currentPlayer * 13;
+        token->x = path[token->currentStep % 52].x * CELL_SIZE;
+        token->y = path[token->currentStep % 52].y * CELL_SIZE;
+        return;
+    }
 
-        // Simulate moving steps along the board path
-        for (int i = 0; i < steps; i++) {
-            // Determine the next position (this assumes a linear path for now)
-            if (token->x / CELL_SIZE == 6 && token->y / CELL_SIZE < BOARD_SIZE - 1) {
-                token->y += CELL_SIZE; // Move down
-            } else if (token->y / CELL_SIZE == BOARD_SIZE - 1 && token->x / CELL_SIZE < BOARD_SIZE - 1) {
-                token->x += CELL_SIZE; // Move right
-            } else if (token->x / CELL_SIZE == BOARD_SIZE - 1 && token->y / CELL_SIZE > 0) {
-                token->y -= CELL_SIZE; // Move up
-            } else if (token->y / CELL_SIZE == 0 && token->x / CELL_SIZE > 0) {
-                token->x -= CELL_SIZE; // Move left
+    if (!token->isHome) {
+        token->currentStep += diceRoll;
+
+        if (token->currentStep >= 50) {
+            int homeStep = token->currentStep - 50;
+            if (homeStep < 6) {
+                token->x = homeStretch[currentPlayer][homeStep].x * CELL_SIZE;
+                token->y = homeStretch[currentPlayer][homeStep].y * CELL_SIZE;
+            } else {
+                token->isHome = 1;
             }
+        } else {
+            int step = token->currentStep % 52;
+            token->x = path[step].x * CELL_SIZE;
+            token->y = path[step].y * CELL_SIZE;
         }
-
-        // Add logic to check for special cases like finishing a loop or entering the "home path"
-        // For example:
-        // if (reachedHomeArea(token, currentPlayer)) {
-        //     handleHomeEntry(token, currentPlayer);
-        // }
     }
 }
+
 
 
 
