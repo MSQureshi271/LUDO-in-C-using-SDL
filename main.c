@@ -416,12 +416,40 @@ typedef struct {
 // Token storage for 4 players, each with 4 tokens
 Token tokens[4][4];
 
-// Player starting positions
-SDL_Point startingPositions[4] = {
-    {1, 6},  // Red starting cell
-    {13, 8}, // Yellow starting cell
-    {6, 13}, // Blue starting cell
-    {8, 1}   // Green starting cell
+// Player paths
+SDL_Point paths[4][56] = {
+    { // Red's Path
+        {1, 6}, {2, 6}, {3, 6}, {4, 6}, {5, 6}, {6, 5}, {6, 4}, {6, 3}, {6, 2}, {6, 1},
+        {6, 0}, {7, 0}, {8, 0}, {8, 1}, {8, 2}, {8, 3}, {8, 4}, {8, 5}, {9, 6}, {10, 6},
+        {11, 6}, {12, 6}, {13, 6}, {14, 6}, {14, 7}, {14, 8}, {13, 8}, {12, 8}, {11, 8}, {10, 8},
+        {9, 8}, {8, 9}, {8, 10}, {8, 11}, {8, 12}, {8, 13}, {8, 14}, {7, 14}, {6, 14}, {6, 13},
+        {6, 12}, {6, 11}, {6, 10}, {6, 9}, {5, 8}, {4, 8}, {3, 8}, {2, 8}, {1, 8}, {0, 8},
+        {0, 7}, {1, 7}, {2, 7}, {3, 7}, {4, 7}, {5, 7}
+    },
+    { //Yellow's Path
+        {13, 8}, {12, 8}, {11, 8}, {10, 8}, {9, 8}, {8, 9}, {8, 10}, {8, 11}, {8, 12}, {8, 13},
+        {8, 14}, {7, 14}, {6, 14}, {6, 13}, {6, 12}, {6, 11}, {6, 10}, {6, 9}, {5, 8}, {4, 8},
+        {3, 8}, {2, 8}, {1, 8}, {0, 8}, {0, 7}, {0, 6}, {1, 6}, {2, 6}, {3, 6}, {4, 6},
+        {5, 6}, {6, 5}, {6, 4}, {6, 3}, {6, 2}, {6, 1}, {6, 0}, {7, 0}, {8, 0}, {8, 1},
+        {8, 2}, {8, 3}, {8, 4}, {8, 5}, {9, 6}, {10, 6}, {11, 6}, {12, 6}, {13, 6}, {14, 6},
+        {14, 7}, {13, 7}, {12, 7}, {11, 7}, {10, 7}, {9, 7}
+    },
+    { //Blue's Path
+        {6, 13}, {6, 12}, {6, 11}, {6, 10}, {6, 9}, {5, 8}, {4, 8}, {3, 8}, {2, 8}, {1, 8},
+        {0, 8}, {0, 7}, {0, 6}, {1, 6}, {2, 6}, {3, 6}, {4, 6}, {5, 6}, {6, 5}, {6, 4},
+        {6, 3}, {6, 2}, {6, 1}, {6, 0}, {7, 0}, {8, 0}, {8, 1}, {8, 2}, {8, 3}, {8, 4},
+        {8, 5}, {9, 6}, {10, 6}, {11, 6}, {12, 6}, {13, 6}, {14, 6}, {14, 7}, {14, 8}, {13, 8},
+        {12, 8}, {11, 8}, {10, 8}, {9, 8}, {8, 9}, {8, 10}, {8, 11}, {8, 12}, {8, 13}, {8, 14},
+        {7, 14}, {7, 13}, {7, 12}, {7, 11}, {7, 10}, {7, 9}
+    },
+    { //Green's Path
+        {8, 1}, {8, 2}, {8, 3}, {8, 4}, {8, 5}, {9, 6}, {10, 6}, {11, 6}, {12, 6}, {13, 6},
+        {14, 6}, {14, 7}, {14, 8}, {13, 8}, {12, 8}, {11, 8}, {10, 8}, {9, 8}, {8, 9}, {8, 10},
+        {8, 11}, {8, 12}, {8, 13}, {8, 14}, {7, 14}, {6, 14}, {6, 13}, {6, 12}, {6, 11}, {6, 10},
+        {6, 9}, {5, 8}, {4, 8}, {3, 8}, {2, 8}, {1, 8}, {0, 8}, {0, 7}, {0, 6}, {1, 6}, {2, 6},
+        {3, 6}, {4, 6}, {5, 6}, {6, 5}, {6, 4}, {6, 3}, {6, 2}, {6, 1}, {6, 0}, {7, 0}, {7, 1},
+        {7, 2}, {7, 3}, {7, 4}, {7, 5}
+    }
 };
 
 
@@ -477,29 +505,35 @@ int handleTokenSelection(SDL_Event *event, int currentPlayer) {
 
 // Function to move the token
 void moveToken(Token *token, int diceRoll, int currentPlayer) {
+    static int tokenPositions[4][4] = {{-1, -1, -1, -1}, {-1, -1, -1, -1}, {-1, -1, -1, -1}, {-1, -1, -1, -1}};
+
     if (token->isHome && diceRoll == 6) {
-        // Free the token and place it in the starting position centered in the cell
+        // Free the token and place it at the starting position
         token->isHome = 0;
-        token->x = (startingPositions[currentPlayer].x + 0.5) * CELL_SIZE;
-        token->y = (startingPositions[currentPlayer].y + 0.5) * CELL_SIZE;
+        tokenPositions[currentPlayer][token - tokens[currentPlayer]] = 0; // Set to the first position
+        token->x = (paths[currentPlayer][0].x + 0.5) * CELL_SIZE;
+        token->y = (paths[currentPlayer][0].y + 0.5) * CELL_SIZE;
     } else if (!token->isHome) {
         // Move the token along the path
-        int steps = diceRoll;
+        int *currentPos = &tokenPositions[currentPlayer][token - tokens[currentPlayer]];
+        *currentPos += diceRoll;
 
-        for (int i = 0; i < steps; i++) {
-            // Determine the next position (assuming a clockwise path)
-            if (token->x / CELL_SIZE == 6 && token->y / CELL_SIZE < BOARD_SIZE - 1) {
-                token->y += CELL_SIZE; // Move down
-            } else if (token->y / CELL_SIZE == BOARD_SIZE - 1 && token->x / CELL_SIZE < BOARD_SIZE - 1) {
-                token->x += CELL_SIZE; // Move right
-            } else if (token->x / CELL_SIZE == BOARD_SIZE - 1 && token->y / CELL_SIZE > 0) {
-                token->y -= CELL_SIZE; // Move up
-            } else if (token->y / CELL_SIZE == 0 && token->x / CELL_SIZE > 0) {
-                token->x -= CELL_SIZE; // Move left
-            }
+        // Clamp the position to the end of the path
+        if (*currentPos >= 56) *currentPos = 55;
+
+        // Update token position based on the path
+        SDL_Point newPos = paths[currentPlayer][*currentPos];
+        token->x = (newPos.x + 0.5) * CELL_SIZE;
+        token->y = (newPos.y + 0.5) * CELL_SIZE;
+
+        // Check if the token has reached the end of the path
+        if (*currentPos == 55) {
+            printf("Token reached the end of the path!\n");
+            // Mark token as finished
         }
     }
 }
+
 
 
 
@@ -649,4 +683,3 @@ int main(int argc, char *argv[]) {
 
     return 0;
 }
-
