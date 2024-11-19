@@ -461,7 +461,7 @@ int handleTokenSelection(SDL_Event *event, int currentPlayer) {
 
         for (int i = 0; i < 4; i++) {
             Token *token = &tokens[currentPlayer][i];
-            // Allow selection of tokens based on their state
+            // Allow selection if the token can be moved (freed or already free)
             if ((token->isHome && diceResult == 6) || !token->isHome) {
                 if (abs(mouseX - token->x) < TOKEN_RADIUS && abs(mouseY - token->y) < TOKEN_RADIUS) {
                     return i; // Return the selected token index
@@ -473,8 +473,6 @@ int handleTokenSelection(SDL_Event *event, int currentPlayer) {
 }
 
 
-
-
 // Function to move the token
 void moveToken(Token *token, int diceRoll, int currentPlayer) {
     if (token->isHome && diceRoll == 6) {
@@ -483,13 +481,11 @@ void moveToken(Token *token, int diceRoll, int currentPlayer) {
         token->x = startingPositions[currentPlayer].x * CELL_SIZE;
         token->y = startingPositions[currentPlayer].y * CELL_SIZE;
     } else if (!token->isHome) {
-        // Move the token along the path
+        // Move the token along the path (assuming a linear path for now)
         token->x = (token->x + diceRoll * CELL_SIZE) % (BOARD_SIZE * CELL_SIZE);
         token->y = (token->y + diceRoll * CELL_SIZE) % (BOARD_SIZE * CELL_SIZE);
     }
 }
-
-
 
 
 // Modified drawTokens function to use the dynamic token positions and add outlines
@@ -595,36 +591,42 @@ int main(int argc, char *argv[]) {
                 }
             }
 
-            if (selectedToken != -1) {
-                Token *token = &tokens[currentPlayer][selectedToken];
+            if (diceResult == 6) {
+                // On rolling a 6, allow freeing or moving a token
+                if (selectedToken != -1) {
+                    Token *token = &tokens[currentPlayer][selectedToken];
+                    if (token->isHome) {
+                        // Free the token
+                        moveToken(token, diceResult, currentPlayer);
+                    } else {
+                        // Move the token
+                        moveToken(token, diceResult, currentPlayer);
+                    }
 
-                if (token->isHome && diceResult == 6) {
-                    // Free the token
-                    moveToken(token, diceResult, currentPlayer);
-                } else if (!token->isHome) {
-                    // Move the freed token
-                    moveToken(token, diceResult, currentPlayer);
+                    // End turn immediately after a valid move
+                    selectedToken = -1;
+                    isDiceRolled = 0;
+                    currentPlayer = (currentPlayer + 1) % numPlayers; // Pass turn
+                    diceResult = 0; // Reset dice result for the next player
                 }
-
-                // End turn after moving
-                selectedToken = -1;
-                isDiceRolled = 0;
-
-                // Pass the turn to the next player
-                currentPlayer = (currentPlayer + 1) % numPlayers;
-                diceResult = 0; // Reset dice result for the next player
-            } else if (diceResult == 6) {
-                // Allow the player to select a token if they rolled a 6
-                // Don't pass the turn until they act
-            } else if (!anyTokenFreed) {
-                // If no tokens can move, skip turn
-                SDL_Delay(1000);  // Allow the player to see the dice result briefly
-                currentPlayer = (currentPlayer + 1) % numPlayers; // Pass turn
-                diceResult = 0; // Reset dice result for the next player
-                isDiceRolled = 0; // Reset the dice rolled flag
+            } else {
+                // Handle non-6 dice rolls
+                if (anyTokenFreed && selectedToken != -1) {
+                    // Move a freed token
+                    moveToken(&tokens[currentPlayer][selectedToken], diceResult, currentPlayer);
+                    selectedToken = -1;
+                    isDiceRolled = 0;
+                    currentPlayer = (currentPlayer + 1) % numPlayers; // Pass turn
+                    diceResult = 0; // Reset dice result for the next player
+                } else if (!anyTokenFreed) {
+                    // If no tokens can move, skip turn
+                    SDL_Delay(1000);  // Allow the player to see the dice result briefly
+                    currentPlayer = (currentPlayer + 1) % numPlayers; // Pass turn
+                    diceResult = 0; // Reset dice result for the next player
+                    isDiceRolled = 0; // Reset the dice rolled flag
+                }
             }
         }
-
 
         // Update rendering
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
