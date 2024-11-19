@@ -36,7 +36,15 @@ void displayWinner(SDL_Renderer *renderer, int winner, TTF_Font *font) {
     char winnerText[50];
     sprintf(winnerText, "Player %d Wins!", winner + 1); // Format the winner's message
 
-    SDL_Color textColor = {0, 255, 0, 255}; // Green text for the winner
+    // Define player colors
+    SDL_Color playerColors[4] = {
+        {255, 0, 0, 255},    // Red
+        {255, 255, 0, 255},  // Yellow
+        {0, 0, 255, 255},    // Blue
+        {0, 255, 0, 255}     // Green
+    };
+
+    SDL_Color textColor = playerColors[winner]; // Use the winner's color
     SDL_Rect textRect = {SCREEN_WIDTH / 2 - 150, SCREEN_HEIGHT / 2 - 50, 300, 100};
 
     // Clear the screen
@@ -51,6 +59,7 @@ void displayWinner(SDL_Renderer *renderer, int winner, TTF_Font *font) {
     // Pause to let the winner announcement stay visible
     SDL_Delay(5000); // Wait for 5 seconds
 }
+
 
 // Function to display start menu
 int displayStartMenu(SDL_Renderer *renderer, TTF_Font *font) {
