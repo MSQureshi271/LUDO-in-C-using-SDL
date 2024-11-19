@@ -32,6 +32,26 @@ void renderText(SDL_Renderer *renderer, const char *text, SDL_Rect rect, SDL_Col
     SDL_DestroyTexture(textTexture);
 }
 
+void displayWinner(SDL_Renderer *renderer, int winner, TTF_Font *font) {
+    char winnerText[50];
+    sprintf(winnerText, "Player %d Wins!", winner + 1); // Format the winner's message
+
+    SDL_Color textColor = {0, 255, 0, 255}; // Green text for the winner
+    SDL_Rect textRect = {SCREEN_WIDTH / 2 - 150, SCREEN_HEIGHT / 2 - 50, 300, 100};
+
+    // Clear the screen
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // Black background
+    SDL_RenderClear(renderer);
+
+    // Render the winner text
+    renderText(renderer, winnerText, textRect, textColor, font);
+
+    SDL_RenderPresent(renderer);
+
+    // Pause to let the winner announcement stay visible
+    SDL_Delay(5000); // Wait for 5 seconds
+}
+
 // Function to display start menu
 int displayStartMenu(SDL_Renderer *renderer, TTF_Font *font) {
     SDL_Color buttonColor = {100, 100, 255, 255};  // Blue buttons
@@ -453,6 +473,7 @@ SDL_Point paths[4][56] = {
 };
 
 
+int running = 1;
 int currentPlayer = 0;   // Track the current player's turn
 int diceResult = 0;      // Store the dice roll result
 int selectedToken = -1;  // Track the currently selected token (-1 if none)
@@ -504,35 +525,36 @@ int handleTokenSelection(SDL_Event *event, int currentPlayer) {
 
 
 // Function to move the token
-void moveToken(Token *token, int diceRoll, int currentPlayer) {
+void moveToken(Token *token, int diceRoll, int currentPlayer, SDL_Renderer *renderer, TTF_Font *font) {
     static int tokenPositions[4][4] = {{-1, -1, -1, -1}, {-1, -1, -1, -1}, {-1, -1, -1, -1}, {-1, -1, -1, -1}};
 
     if (token->isHome && diceRoll == 6) {
-        // Free the token and place it at the starting position
         token->isHome = 0;
         tokenPositions[currentPlayer][token - tokens[currentPlayer]] = 0; // Set to the first position
         token->x = (paths[currentPlayer][0].x + 0.5) * CELL_SIZE;
         token->y = (paths[currentPlayer][0].y + 0.5) * CELL_SIZE;
     } else if (!token->isHome) {
-        // Move the token along the path
         int *currentPos = &tokenPositions[currentPlayer][token - tokens[currentPlayer]];
-        *currentPos += diceRoll;
+        int newPos = *currentPos + diceRoll;
 
-        // Clamp the position to the end of the path
-        if (*currentPos >= 56) *currentPos = 55;
+        if (newPos == 56) { // Check for exact win condition
+            *currentPos = newPos;
+            SDL_Point newPosPoint = paths[currentPlayer][newPos];
+            token->x = (newPosPoint.x + 0.5) * CELL_SIZE;
+            token->y = (newPosPoint.y + 0.5) * CELL_SIZE;
 
-        // Update token position based on the path
-        SDL_Point newPos = paths[currentPlayer][*currentPos];
-        token->x = (newPos.x + 0.5) * CELL_SIZE;
-        token->y = (newPos.y + 0.5) * CELL_SIZE;
-
-        // Check if the token has reached the end of the path
-        if (*currentPos == 55) {
-            printf("Token reached the end of the path!\n");
-            // Mark token as finished
+            displayWinner(renderer, currentPlayer, font); // Announce the winner
+            running = 0; // Terminate the game
+            return;
+        } else if (newPos < 57) { // Move only if not overshooting
+            *currentPos = newPos;
+            SDL_Point newPosPoint = paths[currentPlayer][newPos];
+            token->x = (newPosPoint.x + 0.5) * CELL_SIZE;
+            token->y = (newPosPoint.y + 0.5) * CELL_SIZE;
         }
     }
 }
+
 
 
 
@@ -606,7 +628,6 @@ int main(int argc, char *argv[]) {
     int numPlayers = displayStartMenu(renderer, font);
     initializeTokens(numPlayers);
 
-    int running = 1;
     SDL_Event event;
 
     // Coordinates to draw the dice in the center area
@@ -632,7 +653,6 @@ int main(int argc, char *argv[]) {
         if (isDiceRolled) {
             int anyTokenMovable = 0;
 
-            // Check if any token can be moved
             for (int i = 0; i < 4; i++) {
                 Token *token = &tokens[currentPlayer][i];
                 if (!token->isHome || (token->isHome && diceResult == 6)) {
@@ -642,28 +662,26 @@ int main(int argc, char *argv[]) {
             }
 
             if (anyTokenMovable && selectedToken != -1) {
-                // Move the selected token
                 Token *token = &tokens[currentPlayer][selectedToken];
-                moveToken(token, diceResult, currentPlayer);
-                selectedToken = -1;
+                moveToken(token, diceResult, currentPlayer, renderer, font);
 
-                // Allow another turn if 6 is rolled
+                if (running == 0) break; // Exit if a winner is found
+
+                selectedToken = -1;
                 if (diceResult != 6) {
                     currentPlayer = (currentPlayer + 1) % numPlayers;
                 }
 
                 isDiceRolled = 0;
-                diceResult = 0; // Reset dice result for the next player
+                diceResult = 0;
             } else if (!anyTokenMovable) {
-                // Skip turn if no moves are possible
-                SDL_Delay(1000);  // Allow the player to see the dice result briefly
+                SDL_Delay(1000);
                 currentPlayer = (currentPlayer + 1) % numPlayers;
                 isDiceRolled = 0;
                 diceResult = 0;
             }
         }
 
-        // Update rendering
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
         SDL_RenderClear(renderer);
 
