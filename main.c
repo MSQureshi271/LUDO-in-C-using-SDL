@@ -478,6 +478,7 @@ int currentPlayer = 0;   // Track the current player's turn
 int diceResult = 0;      // Store the dice roll result
 int selectedToken = -1;  // Track the currently selected token (-1 if none)
 int isDiceRolled = 0;    // Flag to ensure dice roll before moving a token
+static int tokenPositions[4][4] = {{-1, -1, -1, -1}, {-1, -1, -1, -1}, {-1, -1, -1, -1}, {-1, -1, -1, -1}};
 
 // Function to initialize tokens in home zones
 void initializeTokens(int numPlayers) {
@@ -526,18 +527,16 @@ int handleTokenSelection(SDL_Event *event, int currentPlayer) {
 
 // Function to move the token
 void moveToken(Token *token, int diceRoll, int currentPlayer, SDL_Renderer *renderer, TTF_Font *font) {
-    static int tokenPositions[4][4] = {{-1, -1, -1, -1}, {-1, -1, -1, -1}, {-1, -1, -1, -1}, {-1, -1, -1, -1}};
-
     if (token->isHome && diceRoll == 6) {
         token->isHome = 0;
-        tokenPositions[currentPlayer][token - tokens[currentPlayer]] = 0; // Set to the first position
+        tokenPositions[currentPlayer][token - tokens[currentPlayer]] = 0; // Set to the start of the path
         token->x = (paths[currentPlayer][0].x + 0.5) * CELL_SIZE;
         token->y = (paths[currentPlayer][0].y + 0.5) * CELL_SIZE;
     } else if (!token->isHome) {
         int *currentPos = &tokenPositions[currentPlayer][token - tokens[currentPlayer]];
         int newPos = *currentPos + diceRoll;
 
-        if (newPos == 56) { // Check for exact win condition
+        if (newPos == 56) { // Exact win condition
             *currentPos = newPos;
             SDL_Point newPosPoint = paths[currentPlayer][newPos];
             token->x = (newPosPoint.x + 0.5) * CELL_SIZE;
@@ -546,7 +545,7 @@ void moveToken(Token *token, int diceRoll, int currentPlayer, SDL_Renderer *rend
             displayWinner(renderer, currentPlayer, font); // Announce the winner
             running = 0; // Terminate the game
             return;
-        } else if (newPos < 57) { // Move only if not overshooting
+        } else if (newPos < 56) { // Move only if not overshooting
             *currentPos = newPos;
             SDL_Point newPosPoint = paths[currentPlayer][newPos];
             token->x = (newPosPoint.x + 0.5) * CELL_SIZE;
@@ -555,12 +554,8 @@ void moveToken(Token *token, int diceRoll, int currentPlayer, SDL_Renderer *rend
     }
 }
 
-
-
-
-
 // Modified drawTokens function to use the dynamic token positions and add outlines
-void drawTokens(SDL_Renderer *renderer, int numPlayers) {
+void drawTokens(SDL_Renderer *renderer, int numPlayers, int diceRoll, int currentPlayer) {
     SDL_Color playerColors[4] = {
         {150, 0, 0, 255},    // Red
         {150, 150, 0, 255},  // Yellow
@@ -568,14 +563,43 @@ void drawTokens(SDL_Renderer *renderer, int numPlayers) {
         {0, 150, 0, 255}     // Green
     };
 
+    SDL_Color highlightColor = {0, 0, 0, 255}; // Bright yellow for highlighting
+
     for (int i = 0; i < numPlayers; i++) {
         for (int j = 0; j < 4; j++) {
             Token *token = &tokens[i][j];
             SDL_Color color = playerColors[i];
 
-            // Draw the token outline (black)
+            // Check if the token is playable
+            int isPlayable = 0;
+            if (i == currentPlayer) {
+                int currentPos = tokenPositions[i][j];
+
+                if (token->isHome && diceRoll == 6) {
+                    isPlayable = 1; // Token can be freed
+                } else if (currentPos >= 0 && currentPos + diceRoll < 56) {
+                    isPlayable = 1; // Token can move within bounds
+                }
+            }
+
+            // Draw highlight if playable
+            if (isPlayable) {
+                SDL_SetRenderDrawColor(renderer, highlightColor.r, highlightColor.g, highlightColor.b, highlightColor.a);
+                for (int w = 0; w < (TOKEN_RADIUS + 6) * 2; w++) {
+                    for (int h = 0; h < (TOKEN_RADIUS + 6) * 2; h++) {
+                        int dx = (TOKEN_RADIUS + 6) - w;
+                        int dy = (TOKEN_RADIUS + 6) - h;
+                        if (dx * dx + dy * dy <= (TOKEN_RADIUS + 6) * (TOKEN_RADIUS + 6) &&
+                            dx * dx + dy * dy > (TOKEN_RADIUS + 4) * (TOKEN_RADIUS + 4)) {
+                            SDL_RenderDrawPoint(renderer, token->x + dx, token->y + dy);
+                        }
+                    }
+                }
+            }
+
+            // Draw the black outline
             SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-            for (int w = 0; w < (TOKEN_RADIUS + 2) * 2; w++) { // Slightly larger radius for the outline
+            for (int w = 0; w < (TOKEN_RADIUS + 2) * 2; w++) {
                 for (int h = 0; h < (TOKEN_RADIUS + 2) * 2; h++) {
                     int dx = (TOKEN_RADIUS + 2) - w;
                     int dy = (TOKEN_RADIUS + 2) - h;
@@ -686,7 +710,7 @@ int main(int argc, char *argv[]) {
         SDL_RenderClear(renderer);
 
         drawLudoBoard(renderer);
-        drawTokens(renderer, numPlayers);
+        drawTokens(renderer, numPlayers, diceResult, currentPlayer);
         drawDice(renderer, diceResult, diceX, diceY);
 
         SDL_RenderPresent(renderer);
