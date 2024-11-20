@@ -440,7 +440,10 @@ int rollDice(SDL_Renderer *renderer, int x, int y) {
 typedef struct {
     int x, y;           // Current position
     int isHome;         // 1 if in home zone, 0 otherwise
+    int player;         // Player ID
+    int index;          // Token index
 } Token;
+
 
 // Token storage for 4 players, each with 4 tokens
 Token tokens[4][4];
@@ -508,6 +511,8 @@ void initializeTokens(int numPlayers) {
             tokens[i][j].x = homeX + (j % 2) * (CELL_SIZE / 2 + spacing);
             tokens[i][j].y = homeY + (j / 2) * (CELL_SIZE / 2 + spacing);
             tokens[i][j].isHome = 1;
+            tokens[i][j].player = i;
+            tokens[i][j].index = j;
         }
     }
 }
@@ -537,12 +542,14 @@ int handleTokenSelection(SDL_Event *event, int currentPlayer) {
 // Function to move the token
 void moveToken(Token *token, int diceRoll, int currentPlayer, SDL_Renderer *renderer, TTF_Font *font) {
     if (token->isHome && diceRoll == 6) {
+        // Move token out of home
         token->isHome = 0;
-        tokenPositions[currentPlayer][token - tokens[currentPlayer]] = 0; // Set to the start of the path
+        tokenPositions[currentPlayer][token->index] = 0; // Set to the start of the path
         token->x = (paths[currentPlayer][0].x + 0.5) * CELL_SIZE;
         token->y = (paths[currentPlayer][0].y + 0.5) * CELL_SIZE;
     } else if (!token->isHome) {
-        int *currentPos = &tokenPositions[currentPlayer][token - tokens[currentPlayer]];
+        // Calculate new position
+        int *currentPos = &tokenPositions[currentPlayer][token->index];
         int newPos = *currentPos + diceRoll;
 
         if (newPos == 56) { // Exact win condition
@@ -559,6 +566,42 @@ void moveToken(Token *token, int diceRoll, int currentPlayer, SDL_Renderer *rend
             SDL_Point newPosPoint = paths[currentPlayer][newPos];
             token->x = (newPosPoint.x + 0.5) * CELL_SIZE;
             token->y = (newPosPoint.y + 0.5) * CELL_SIZE;
+
+            // Check for collisions
+            for (int i = 0; i < 4; i++) { // Iterate over all other players
+                if (i != currentPlayer) {
+                    for (int j = 0; j < 4; j++) {
+                        Token *otherToken = &tokens[i][j];
+
+                        // Check if the other token is at the same position
+                        if (!otherToken->isHome && 
+                            otherToken->x == token->x && 
+                            otherToken->y == token->y) {
+                            
+                            // Send the other token back to its home
+                            otherToken->isHome = 1;
+                            tokenPositions[i][j] = -1; // Reset its position
+                            
+                            // Place the token back in its home zone
+                            SDL_Point homeZones[4] = {
+                                {2, 2},  // Red
+                                {12, 12},// Yellow
+                                {2, 12}, // Blue
+                                {12, 2}  // Green
+                            };
+
+                            int homeX = homeZones[i].x * CELL_SIZE;
+                            int homeY = homeZones[i].y * CELL_SIZE;
+                            int spacing = CELL_SIZE / 4;
+
+                            otherToken->x = homeX + (j % 2) * (CELL_SIZE / 2 + spacing);
+                            otherToken->y = homeY + (j / 2) * (CELL_SIZE / 2 + spacing);
+
+                            break; // Only one token can occupy the spot
+                        }
+                    }
+                }
+            }
         }
     }
 }
