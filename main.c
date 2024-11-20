@@ -1,5 +1,6 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_image.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -60,17 +61,115 @@ void displayWinner(SDL_Renderer *renderer, int winner, TTF_Font *font) {
     SDL_Delay(5000); // Wait for 5 seconds
 }
 
+//Display Main Menu
+int displayMainMenu(SDL_Renderer *renderer, TTF_Font *font) {
+    // Load the background image
+    SDL_Surface *bgSurface = IMG_Load("background.jpg"); // Replace with your image path
+    if (!bgSurface) {
+        printf("Unable to load background image: %s\n", SDL_GetError());
+        return 0;
+    }
+    SDL_Texture *bgTexture = SDL_CreateTextureFromSurface(renderer, bgSurface);
+    SDL_FreeSurface(bgSurface);
+
+    if (!bgTexture) {
+        printf("Unable to create texture from background image: %s\n", SDL_GetError());
+        return 0;
+    }
+
+    SDL_Color buttonColor = {194, 152, 70, 255};  // Brown Shade buttons
+    SDL_Color buttonHoverColor = {219, 176, 92, 255}; // Light Brown color for hover effect
+    SDL_Color textColor = {0, 0, 0, 255}; // Black text
+
+    SDL_Rect startButton = {SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 - 10, 200, 50}; // Lowered position
+    SDL_Rect quitButton = {SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 + 70, 200, 50}; // Lowered position
+
+    int selectedOption = 0; // 1 for Start, 2 for Quit
+    int running = 1;
+
+    while (running) {
+        SDL_Event event;
+        int mouseX, mouseY;
+        SDL_Color currentButtonColor;
+
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_QUIT) {
+                running = 0;
+                selectedOption = 2; // Quit by closing the window
+                break;
+            }
+            if (event.type == SDL_MOUSEMOTION) {
+                mouseX = event.motion.x;
+                mouseY = event.motion.y;
+            }
+            if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
+                mouseX = event.button.x;
+                mouseY = event.button.y;
+
+                if (SDL_PointInRect(&(SDL_Point){mouseX, mouseY}, &startButton)) {
+                    selectedOption = 1; // Start game
+                    running = 0;
+                } else if (SDL_PointInRect(&(SDL_Point){mouseX, mouseY}, &quitButton)) {
+                    selectedOption = 2; // Quit game
+                    running = 0;
+                }
+            }
+        }
+
+        // Render the background image
+        SDL_RenderCopy(renderer, bgTexture, NULL, NULL);
+
+        // Render Start Button
+        if (SDL_PointInRect(&(SDL_Point){mouseX, mouseY}, &startButton)) {
+            currentButtonColor = buttonHoverColor;
+        } else {
+            currentButtonColor = buttonColor;
+        }
+        SDL_SetRenderDrawColor(renderer, currentButtonColor.r, currentButtonColor.g, currentButtonColor.b, 255);
+        SDL_RenderFillRect(renderer, &startButton);
+        renderText(renderer, "Start", startButton, textColor, font);
+
+        // Render Quit Button
+        if (SDL_PointInRect(&(SDL_Point){mouseX, mouseY}, &quitButton)) {
+            currentButtonColor = buttonHoverColor;
+        } else {
+            currentButtonColor = buttonColor;
+        }
+        SDL_SetRenderDrawColor(renderer, currentButtonColor.r, currentButtonColor.g, currentButtonColor.b, 255);
+        SDL_RenderFillRect(renderer, &quitButton);
+        renderText(renderer, "Quit", quitButton, textColor, font);
+
+        SDL_RenderPresent(renderer);
+    }
+
+    SDL_DestroyTexture(bgTexture); // Clean up background texture
+    return selectedOption;
+}
+
+
 
 // Function to display start menu
 int displayStartMenu(SDL_Renderer *renderer, TTF_Font *font) {
-    SDL_Color buttonColor = {100, 100, 255, 255};  // Blue buttons
-    SDL_Color buttonHoverColor = {150, 150, 255, 255}; // Light blue for hover effect
-    SDL_Color textColor = {255, 255, 255, 255};    // White text
+    SDL_Surface *bgSurface = IMG_Load("background.jpg"); // Load the image
+    if (!bgSurface) {
+        printf("Unable to load background image: %s\n", SDL_GetError());
+        return 0;
+    }
+    SDL_Texture *bgTexture = SDL_CreateTextureFromSurface(renderer, bgSurface);
+    SDL_FreeSurface(bgSurface);
 
-    SDL_Rect menuHeading = {SCREEN_WIDTH / 2 - 100, 50, 200, 50};
-    SDL_Rect twoPlayersButton = {SCREEN_WIDTH / 2 - 100, 150, 200, 50};
-    SDL_Rect threePlayersButton = {SCREEN_WIDTH / 2 - 100, 250, 200, 50};
-    SDL_Rect fourPlayersButton = {SCREEN_WIDTH / 2 - 100, 350, 200, 50};
+    if (!bgTexture) {
+        printf("Unable to create texture from background image: %s\n", SDL_GetError());
+        return 0;
+    }
+
+    SDL_Color buttonColor = {194, 152, 70, 255}; // Brown Shade Color
+    SDL_Color buttonHoverColor = {219, 176, 92, 255}; // Slightly Lighter Brown Color for hover effect
+    SDL_Color textColor = {0, 0, 0, 255}; // Black Text
+
+    SDL_Rect twoPlayersButton = {SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 - 10, 200, 50};
+    SDL_Rect threePlayersButton = {SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 + 70, 200, 50};
+    SDL_Rect fourPlayersButton = {SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 + 150, 200, 50};
 
     int selectedPlayers = 0;
     int running = 1;
@@ -80,7 +179,6 @@ int displayStartMenu(SDL_Renderer *renderer, TTF_Font *font) {
         int mouseX, mouseY;
         SDL_Color currentButtonColor;
 
-        // Event handling
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
                 running = 0;
@@ -94,10 +192,9 @@ int displayStartMenu(SDL_Renderer *renderer, TTF_Font *font) {
                 mouseX = event.button.x;
                 mouseY = event.button.y;
 
-                // Check if the user clicked on any button
                 if (SDL_PointInRect(&(SDL_Point){mouseX, mouseY}, &twoPlayersButton)) {
                     selectedPlayers = 2;
-                    running = 0;  // Exit menu
+                    running = 0;
                 } else if (SDL_PointInRect(&(SDL_Point){mouseX, mouseY}, &threePlayersButton)) {
                     selectedPlayers = 3;
                     running = 0;
@@ -108,22 +205,10 @@ int displayStartMenu(SDL_Renderer *renderer, TTF_Font *font) {
             }
         }
 
-        // Clear screen
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);  // Black background
-        SDL_RenderClear(renderer);
+        // Render the background image
+        SDL_RenderCopy(renderer, bgTexture, NULL, NULL);
 
-        // Render "LUDO Game" heading with different colors for L, U, D, O
-        SDL_Rect letterRect = {SCREEN_WIDTH / 2 - 100, 50, 40, 50};
-        
-        SDL_Color colors[] = { {255, 0, 0, 255}, {255, 255, 0, 255}, {0, 255, 0, 255}, {0, 0, 255, 255} };
-        const char *letters[] = { "L", "U", "D", "O" };
-
-        for (int i = 0; i < 4; i++) {
-            renderText(renderer, letters[i], letterRect, colors[i], font);
-            letterRect.x += 50;  // Move the position for the next letter
-        }
-
-        // Render 2 Players button
+        // Render the buttons
         if (SDL_PointInRect(&(SDL_Point){mouseX, mouseY}, &twoPlayersButton)) {
             currentButtonColor = buttonHoverColor;
         } else {
@@ -133,7 +218,6 @@ int displayStartMenu(SDL_Renderer *renderer, TTF_Font *font) {
         SDL_RenderFillRect(renderer, &twoPlayersButton);
         renderText(renderer, "2 Players", twoPlayersButton, textColor, font);
 
-        // Render 3 Players button
         if (SDL_PointInRect(&(SDL_Point){mouseX, mouseY}, &threePlayersButton)) {
             currentButtonColor = buttonHoverColor;
         } else {
@@ -143,7 +227,6 @@ int displayStartMenu(SDL_Renderer *renderer, TTF_Font *font) {
         SDL_RenderFillRect(renderer, &threePlayersButton);
         renderText(renderer, "3 Players", threePlayersButton, textColor, font);
 
-        // Render 4 Players button
         if (SDL_PointInRect(&(SDL_Point){mouseX, mouseY}, &fourPlayersButton)) {
             currentButtonColor = buttonHoverColor;
         } else {
@@ -156,8 +239,10 @@ int displayStartMenu(SDL_Renderer *renderer, TTF_Font *font) {
         SDL_RenderPresent(renderer);
     }
 
+    SDL_DestroyTexture(bgTexture);
     return selectedPlayers;
 }
+
 
 
 // Function to draw the Ludo board
@@ -747,6 +832,17 @@ int main(int argc, char *argv[]) {
         printf("Unable to load font: %s\n", TTF_GetError());
         return -1;
     }
+
+    // Display main menu
+    int mainMenuOption = displayMainMenu(renderer, font);
+    if (mainMenuOption == 2) { // Quit game
+        TTF_CloseFont(font);
+        TTF_Quit();
+        SDL_DestroyRenderer(renderer);
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 0;
+    }    
 
     int numPlayers = displayStartMenu(renderer, font);
     initializeTokens(numPlayers);
