@@ -537,75 +537,6 @@ int handleTokenSelection(SDL_Event *event, int currentPlayer) {
     return -1; // No valid token selected
 }
 
-
-
-// Function to move the token
-void moveToken(Token *token, int diceRoll, int currentPlayer, SDL_Renderer *renderer, TTF_Font *font) {
-    if (token->isHome && diceRoll == 6) {
-        // Move token out of home
-        token->isHome = 0;
-        tokenPositions[currentPlayer][token->index] = 0; // Set to the start of the path
-        token->x = (paths[currentPlayer][0].x + 0.5) * CELL_SIZE;
-        token->y = (paths[currentPlayer][0].y + 0.5) * CELL_SIZE;
-    } else if (!token->isHome) {
-        // Calculate new position
-        int *currentPos = &tokenPositions[currentPlayer][token->index];
-        int newPos = *currentPos + diceRoll;
-
-        if (newPos == 56) { // Exact win condition
-            *currentPos = newPos;
-            SDL_Point newPosPoint = paths[currentPlayer][newPos];
-            token->x = (newPosPoint.x + 0.5) * CELL_SIZE;
-            token->y = (newPosPoint.y + 0.5) * CELL_SIZE;
-
-            displayWinner(renderer, currentPlayer, font); // Announce the winner
-            running = 0; // Terminate the game
-            return;
-        } else if (newPos < 56) { // Move only if not overshooting
-            *currentPos = newPos;
-            SDL_Point newPosPoint = paths[currentPlayer][newPos];
-            token->x = (newPosPoint.x + 0.5) * CELL_SIZE;
-            token->y = (newPosPoint.y + 0.5) * CELL_SIZE;
-
-            // Check for collisions
-            for (int i = 0; i < 4; i++) { // Iterate over all other players
-                if (i != currentPlayer) {
-                    for (int j = 0; j < 4; j++) {
-                        Token *otherToken = &tokens[i][j];
-
-                        // Check if the other token is at the same position
-                        if (!otherToken->isHome && 
-                            otherToken->x == token->x && 
-                            otherToken->y == token->y) {
-                            
-                            // Send the other token back to its home
-                            otherToken->isHome = 1;
-                            tokenPositions[i][j] = -1; // Reset its position
-                            
-                            // Place the token back in its home zone
-                            SDL_Point homeZones[4] = {
-                                {2, 2},  // Red
-                                {12, 12},// Yellow
-                                {2, 12}, // Blue
-                                {12, 2}  // Green
-                            };
-
-                            int homeX = homeZones[i].x * CELL_SIZE;
-                            int homeY = homeZones[i].y * CELL_SIZE;
-                            int spacing = CELL_SIZE / 4;
-
-                            otherToken->x = homeX + (j % 2) * (CELL_SIZE / 2 + spacing);
-                            otherToken->y = homeY + (j / 2) * (CELL_SIZE / 2 + spacing);
-
-                            break; // Only one token can occupy the spot
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
 // Modified drawTokens function to use the dynamic token positions and add outlines
 void drawTokens(SDL_Renderer *renderer, int numPlayers, int diceRoll, int currentPlayer) {
     SDL_Color playerColors[4] = {
@@ -676,6 +607,124 @@ void drawTokens(SDL_Renderer *renderer, int numPlayers, int diceRoll, int curren
     }
 }
 
+void animateToken(Token *token, SDL_Point target, SDL_Renderer *renderer) {
+    int targetX = (target.x + 0.5) * CELL_SIZE;
+    int targetY = (target.y + 0.5) * CELL_SIZE;
+    int steps = 3; // Number of animation steps for smoothness
+    float dx = (targetX - token->x) / (float)steps;
+    float dy = (targetY - token->y) / (float)steps;
+
+    for (int i = 0; i < steps; i++) {
+        token->x += dx;
+        token->y += dy;
+
+        // Redraw the board and tokens for animation
+        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+        SDL_RenderClear(renderer);
+        drawLudoBoard(renderer);
+        drawTokens(renderer, 4, 0, currentPlayer); // Adjust parameters as needed
+        SDL_RenderPresent(renderer);
+
+        SDL_Delay(20); // Delay for smoother animation (20ms per step)
+    }
+
+    // Ensure the token ends exactly at the target position
+    token->x = targetX;
+    token->y = targetY;
+}
+
+// Function to move the token
+void moveToken(Token *token, int diceRoll, int currentPlayer, SDL_Renderer *renderer, TTF_Font *font) {
+    if (token->isHome && diceRoll == 6) {
+        // Move token out of home
+        token->isHome = 0;
+        tokenPositions[currentPlayer][token->index] = 0; // Set to the start of the path
+        SDL_Point startPos = paths[currentPlayer][0];
+        animateToken(token, startPos, renderer); // Animate token to the start position
+    } else if (!token->isHome) {
+        // Calculate new position
+        int *currentPos = &tokenPositions[currentPlayer][token->index];
+        int newPos = *currentPos + diceRoll;
+
+        if (newPos == 56) { // Exact win condition
+            *currentPos = newPos;
+            SDL_Point newPosPoint = paths[currentPlayer][newPos];
+            animateToken(token, newPosPoint, renderer); // Animate to the final position
+            displayWinner(renderer, currentPlayer, font); // Announce the winner
+            running = 0; // Terminate the game
+            return;
+        } else if (newPos < 56) { // Move only if not overshooting
+            // Animate step-by-step to each position
+            for (int step = *currentPos + 1; step <= newPos; ++step) {
+                SDL_Point stepPoint = paths[currentPlayer][step];
+                animateToken(token, stepPoint, renderer);
+            }
+            *currentPos = newPos;
+
+            // Check for collisions
+            for (int i = 0; i < 4; i++) { // Iterate over all other players
+                if (i != currentPlayer) {
+                    for (int j = 0; j < 4; j++) {
+                        Token *otherToken = &tokens[i][j];
+
+                        // Skip checking tokens that are still in their home zones
+                        if (otherToken->isHome) continue;
+
+                        // Check if the other token is at the same position
+                        if (otherToken->x == token->x && otherToken->y == token->y) {
+                            
+                            // Check if the other token is on a home row
+                            int isOnHomeRow = (
+                                // Red Home Row
+                                (otherToken->y >= (6 * CELL_SIZE) && otherToken->y <= (8 * CELL_SIZE) && otherToken->x == (1 * CELL_SIZE)) ||
+                                (otherToken->y == (7 * CELL_SIZE) && otherToken->x >= (1 * CELL_SIZE) && otherToken->x <= (5 * CELL_SIZE)) ||
+                                (otherToken->y == (8 * CELL_SIZE) && otherToken->x == (2 * CELL_SIZE)) ||
+                                // Yellow Home Row
+                                (otherToken->y >= (6 * CELL_SIZE) && otherToken->y <= (8 * CELL_SIZE) && otherToken->x == (12 * CELL_SIZE)) ||
+                                (otherToken->y == (7 * CELL_SIZE) && otherToken->x >= (9 * CELL_SIZE) && otherToken->x <= (13 * CELL_SIZE)) ||
+                                (otherToken->y == (8 * CELL_SIZE) && otherToken->x == (13 * CELL_SIZE)) ||
+                                // Green Home Row
+                                (otherToken->x >= (6 * CELL_SIZE) && otherToken->x <= (8 * CELL_SIZE) && otherToken->y == (1 * CELL_SIZE)) ||
+                                (otherToken->x == (7 * CELL_SIZE) && otherToken->y >= (1 * CELL_SIZE) && otherToken->y <= (5 * CELL_SIZE)) ||
+                                (otherToken->x == (8 * CELL_SIZE) && otherToken->y == (1 * CELL_SIZE)) ||
+                                // Blue Home Row
+                                (otherToken->x >= (6 * CELL_SIZE) && otherToken->x <= (8 * CELL_SIZE) && otherToken->y == (12 * CELL_SIZE)) ||
+                                (otherToken->x == (7 * CELL_SIZE) && otherToken->y >= (9 * CELL_SIZE) && otherToken->y <= (13 * CELL_SIZE)) ||
+                                (otherToken->x == (8 * CELL_SIZE) && otherToken->y == (12 * CELL_SIZE))
+                            );
+
+                            if (isOnHomeRow) {
+                                // Token on a home row is protected and cannot be captured
+                                continue;
+                            }
+
+                            // Send the other token back to its home
+                            otherToken->isHome = 1;
+                            tokenPositions[i][j] = -1; // Reset its position
+                            
+                            // Place the token back in its home zone
+                            SDL_Point homeZones[4] = {
+                                {2, 2},  // Red
+                                {12, 12},// Yellow
+                                {2, 12}, // Blue
+                                {12, 2}  // Green
+                            };
+
+                            int homeX = homeZones[i].x * CELL_SIZE;
+                            int homeY = homeZones[i].y * CELL_SIZE;
+                            int spacing = CELL_SIZE / 4;
+
+                            otherToken->x = homeX + (j % 2) * (CELL_SIZE / 2 + spacing);
+                            otherToken->y = homeY + (j / 2) * (CELL_SIZE / 2 + spacing);
+
+                            break; // Only one token can occupy the spot
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
 // Main game loop
 int main(int argc, char *argv[]) {
