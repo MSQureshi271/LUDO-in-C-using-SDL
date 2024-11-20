@@ -34,6 +34,20 @@ void renderText(SDL_Renderer *renderer, const char *text, SDL_Rect rect, SDL_Col
 }
 
 void displayWinner(SDL_Renderer *renderer, int winner, TTF_Font *font) {
+    // Load the background image
+    SDL_Surface *bgSurface = IMG_Load("winner_background.jpg"); // Replace with your image path
+    if (!bgSurface) {
+        printf("Unable to load background image: %s\n", SDL_GetError());
+        return;
+    }
+    SDL_Texture *bgTexture = SDL_CreateTextureFromSurface(renderer, bgSurface);
+    SDL_FreeSurface(bgSurface);
+
+    if (!bgTexture) {
+        printf("Unable to create texture from background image: %s\n", SDL_GetError());
+        return;
+    }
+
     char winnerText[50];
     sprintf(winnerText, "Player %d Wins!", winner + 1); // Format the winner's message
 
@@ -46,11 +60,10 @@ void displayWinner(SDL_Renderer *renderer, int winner, TTF_Font *font) {
     };
 
     SDL_Color textColor = playerColors[winner]; // Use the winner's color
-    SDL_Rect textRect = {SCREEN_WIDTH / 2 - 150, SCREEN_HEIGHT / 2 - 50, 300, 100};
+    SDL_Rect textRect = {SCREEN_WIDTH / 2 - 150, SCREEN_HEIGHT / 2 - 10, 300, 100};
 
-    // Clear the screen
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // Black background
-    SDL_RenderClear(renderer);
+    // Render the background image
+    SDL_RenderCopy(renderer, bgTexture, NULL, NULL);
 
     // Render the winner text
     renderText(renderer, winnerText, textRect, textColor, font);
@@ -59,6 +72,8 @@ void displayWinner(SDL_Renderer *renderer, int winner, TTF_Font *font) {
 
     // Pause to let the winner announcement stay visible
     SDL_Delay(5000); // Wait for 5 seconds
+
+    SDL_DestroyTexture(bgTexture); // Clean up texture
 }
 
 //Display Main Menu
