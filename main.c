@@ -492,6 +492,21 @@ int selectedToken = -1;  // Track the currently selected token (-1 if none)
 int isDiceRolled = 0;    // Flag to ensure dice roll before moving a token
 static int tokenPositions[4][4] = {{-1, -1, -1, -1}, {-1, -1, -1, -1}, {-1, -1, -1, -1}, {-1, -1, -1, -1}};
 
+// Function to check if a grid is a safe grid
+int isSafeGrid(int x, int y) {
+    SDL_Point safeGrids[] = {
+        {1, 6}, {2, 8}, {12, 6}, {13, 8}, {6, 2}, {8, 1}, {6, 13}, {8, 12}
+    };
+    int numSafeGrids = sizeof(safeGrids) / sizeof(safeGrids[0]);
+
+    for (int i = 0; i < numSafeGrids; i++) {
+        if (safeGrids[i].x == x && safeGrids[i].y == y) {
+            return 1; // Position is a safe grid
+        }
+    }
+    return 0; // Not a safe grid
+}
+
 // Function to initialize tokens in home zones
 void initializeTokens(int numPlayers) {
     SDL_Point homeZones[4] = {
@@ -672,29 +687,12 @@ void moveToken(Token *token, int diceRoll, int currentPlayer, SDL_Renderer *rend
 
                         // Check if the other token is at the same position
                         if (otherToken->x == token->x && otherToken->y == token->y) {
-                            
-                            // Check if the other token is on a home row
-                            int isOnHomeRow = (
-                                // Red Home Row
-                                (otherToken->y >= (6 * CELL_SIZE) && otherToken->y <= (8 * CELL_SIZE) && otherToken->x == (1 * CELL_SIZE)) ||
-                                (otherToken->y == (7 * CELL_SIZE) && otherToken->x >= (1 * CELL_SIZE) && otherToken->x <= (5 * CELL_SIZE)) ||
-                                (otherToken->y == (8 * CELL_SIZE) && otherToken->x == (2 * CELL_SIZE)) ||
-                                // Yellow Home Row
-                                (otherToken->y >= (6 * CELL_SIZE) && otherToken->y <= (8 * CELL_SIZE) && otherToken->x == (12 * CELL_SIZE)) ||
-                                (otherToken->y == (7 * CELL_SIZE) && otherToken->x >= (9 * CELL_SIZE) && otherToken->x <= (13 * CELL_SIZE)) ||
-                                (otherToken->y == (8 * CELL_SIZE) && otherToken->x == (13 * CELL_SIZE)) ||
-                                // Green Home Row
-                                (otherToken->x >= (6 * CELL_SIZE) && otherToken->x <= (8 * CELL_SIZE) && otherToken->y == (1 * CELL_SIZE)) ||
-                                (otherToken->x == (7 * CELL_SIZE) && otherToken->y >= (1 * CELL_SIZE) && otherToken->y <= (5 * CELL_SIZE)) ||
-                                (otherToken->x == (8 * CELL_SIZE) && otherToken->y == (1 * CELL_SIZE)) ||
-                                // Blue Home Row
-                                (otherToken->x >= (6 * CELL_SIZE) && otherToken->x <= (8 * CELL_SIZE) && otherToken->y == (12 * CELL_SIZE)) ||
-                                (otherToken->x == (7 * CELL_SIZE) && otherToken->y >= (9 * CELL_SIZE) && otherToken->y <= (13 * CELL_SIZE)) ||
-                                (otherToken->x == (8 * CELL_SIZE) && otherToken->y == (12 * CELL_SIZE))
-                            );
+                            // Check if the position is a safe grid
+                            int gridX = otherToken->x / CELL_SIZE;
+                            int gridY = otherToken->y / CELL_SIZE;
 
-                            if (isOnHomeRow) {
-                                // Token on a home row is protected and cannot be captured
+                            if (isSafeGrid(gridX, gridY)) {
+                                // Token on a safe grid is protected and cannot be captured
                                 continue;
                             }
 
