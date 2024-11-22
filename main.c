@@ -33,9 +33,10 @@ void renderText(SDL_Renderer *renderer, const char *text, SDL_Rect rect, SDL_Col
     SDL_DestroyTexture(textTexture);
 }
 
+//Function to display winner at End Screen
 void displayWinner(SDL_Renderer *renderer, int winner, TTF_Font *font) {
     // Load the background image
-    SDL_Surface *bgSurface = IMG_Load("winner_background.jpg"); // Replace with your image path
+    SDL_Surface *bgSurface = IMG_Load("Images/winner_background.jpg"); // Replace with your image path
     if (!bgSurface) {
         printf("Unable to load background image: %s\n", SDL_GetError());
         return;
@@ -60,7 +61,7 @@ void displayWinner(SDL_Renderer *renderer, int winner, TTF_Font *font) {
     };
 
     SDL_Color textColor = playerColors[winner]; // Use the winner's color
-    SDL_Rect textRect = {SCREEN_WIDTH / 2 - 150, SCREEN_HEIGHT / 2 - 10, 300, 100};
+    SDL_Rect textRect = {SCREEN_WIDTH / 2 - 150, SCREEN_HEIGHT / 2 + 70, 300, 100};
 
     // Render the background image
     SDL_RenderCopy(renderer, bgTexture, NULL, NULL);
@@ -79,7 +80,7 @@ void displayWinner(SDL_Renderer *renderer, int winner, TTF_Font *font) {
 //Display Main Menu
 int displayMainMenu(SDL_Renderer *renderer, TTF_Font *font) {
     // Load the background image
-    SDL_Surface *bgSurface = IMG_Load("background.jpg"); // Replace with your image path
+    SDL_Surface *bgSurface = IMG_Load("Images/background.jpg"); // Replace with your image path
     if (!bgSurface) {
         printf("Unable to load background image: %s\n", SDL_GetError());
         return 0;
@@ -161,11 +162,9 @@ int displayMainMenu(SDL_Renderer *renderer, TTF_Font *font) {
     return selectedOption;
 }
 
-
-
 // Function to display start menu
 int displayStartMenu(SDL_Renderer *renderer, TTF_Font *font) {
-    SDL_Surface *bgSurface = IMG_Load("background.jpg"); // Load the image
+    SDL_Surface *bgSurface = IMG_Load("Images/background.jpg"); // Load the image
     if (!bgSurface) {
         printf("Unable to load background image: %s\n", SDL_GetError());
         return 0;
@@ -257,8 +256,6 @@ int displayStartMenu(SDL_Renderer *renderer, TTF_Font *font) {
     SDL_DestroyTexture(bgTexture);
     return selectedPlayers;
 }
-
-
 
 // Function to draw the Ludo board
 void drawLudoBoard(SDL_Renderer *renderer) {
@@ -494,9 +491,6 @@ void drawDice(SDL_Renderer *renderer, int diceNumber, int x, int y) {
     }
 }
 
-
-
-// Function to draw tokens in the players' home zones
 // Helper function to draw a filled circle
 void drawCircle(SDL_Renderer *renderer, int centerX, int centerY, int radius, SDL_Color color) {
     SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
@@ -632,7 +626,6 @@ void initializeTokens(int numPlayers) {
     }
 }
 
-
 // Function to detect token selection
 int handleTokenSelection(SDL_Event *event, int currentPlayer) {
     if (event->type == SDL_MOUSEBUTTONDOWN && event->button.button == SDL_BUTTON_LEFT) {
@@ -722,6 +715,7 @@ void drawTokens(SDL_Renderer *renderer, int numPlayers, int diceRoll, int curren
     }
 }
 
+//Animate the tokens to move
 void animateToken(Token *token, SDL_Point target, SDL_Renderer *renderer) {
     int targetX = (target.x + 0.5) * CELL_SIZE;
     int targetY = (target.y + 0.5) * CELL_SIZE;

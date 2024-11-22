@@ -61,6 +61,15 @@
     "drawtokens.h": "c",
     "displaystartmenu.h": "c",
     "rolldice.h": "c",
-    "drawdice.h": "c"
+    "drawdice.h": "c",
+    "displaywinner.h": "c",
+    "drawcircle.h": "c",
+    "drawfilledcircle.h": "c",
+    "drawludoboard.h": "c",
+    "handletokenselection.h": "c",
+    "initializetokens.h": "c",
+    "issafegrid.h": "c",
+    "movetoken.h": "c",
+    "rendertext.h": "c"
   }
 }
