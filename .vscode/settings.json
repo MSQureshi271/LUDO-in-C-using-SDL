@@ -70,6 +70,8 @@
     "initializetokens.h": "c",
     "issafegrid.h": "c",
     "movetoken.h": "c",
-    "rendertext.h": "c"
+    "rendertext.h": "c",
+    "animatetoken.h": "c",
+    "sdl_ttf.h": "c"
   }
 }
